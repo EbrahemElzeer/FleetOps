@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36109.1 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FleetOps.Order.Api", "Order\FleetOps.Order.Api.csproj", "{7CE890AE-472F-4530-B2C4-E8D67B889A87}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{D8CB445C-A3B5-4343-98E8-B40771997274}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OrderService", "OrderService", "{B82ECB8D-7F1A-48C2-BD0B-8CB70620C58D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FleetOps.Order.Application", "FleetOps.Order.Application\FleetOps.Order.Application.csproj", "{8ED92698-D204-4C32-8C50-479C386695C4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FleetOps.Order.Domain", "FleetOps.Order.Domain\FleetOps.Order.Domain.csproj", "{86BEA020-93C6-4AAB-B7FD-13C0A327797E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FleetOps.Order.Infrastructure", "FleetOps.Order.Infrastructure\FleetOps.Order.Infrastructure.csproj", "{3A92CECB-9C1D-4761-8FF2-ED3E2AD225EF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7CE890AE-472F-4530-B2C4-E8D67B889A87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CE890AE-472F-4530-B2C4-E8D67B889A87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CE890AE-472F-4530-B2C4-E8D67B889A87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CE890AE-472F-4530-B2C4-E8D67B889A87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8ED92698-D204-4C32-8C50-479C386695C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8ED92698-D204-4C32-8C50-479C386695C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8ED92698-D204-4C32-8C50-479C386695C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8ED92698-D204-4C32-8C50-479C386695C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86BEA020-93C6-4AAB-B7FD-13C0A327797E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86BEA020-93C6-4AAB-B7FD-13C0A327797E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86BEA020-93C6-4AAB-B7FD-13C0A327797E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86BEA020-93C6-4AAB-B7FD-13C0A327797E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A92CECB-9C1D-4761-8FF2-ED3E2AD225EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A92CECB-9C1D-4761-8FF2-ED3E2AD225EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A92CECB-9C1D-4761-8FF2-ED3E2AD225EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A92CECB-9C1D-4761-8FF2-ED3E2AD225EF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7CE890AE-472F-4530-B2C4-E8D67B889A87} = {B82ECB8D-7F1A-48C2-BD0B-8CB70620C58D}
+		{D8CB445C-A3B5-4343-98E8-B40771997274} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{B82ECB8D-7F1A-48C2-BD0B-8CB70620C58D} = {D8CB445C-A3B5-4343-98E8-B40771997274}
+		{8ED92698-D204-4C32-8C50-479C386695C4} = {B82ECB8D-7F1A-48C2-BD0B-8CB70620C58D}
+		{86BEA020-93C6-4AAB-B7FD-13C0A327797E} = {B82ECB8D-7F1A-48C2-BD0B-8CB70620C58D}
+		{3A92CECB-9C1D-4761-8FF2-ED3E2AD225EF} = {B82ECB8D-7F1A-48C2-BD0B-8CB70620C58D}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A457CD0A-964B-49BD-AA1E-BDC5F9841346}
+	EndGlobalSection
+EndGlobal
