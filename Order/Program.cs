@@ -1,4 +1,7 @@
 
+using FleetOps.Order.Application;
+using FleetOps.Order.Infrastructure;
+
 namespace Order
 {
     public class Program
@@ -12,6 +15,8 @@ namespace Order
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
+            builder.Services.AddInfrastructure(builder.Configuration);
+            builder.Services.AddApplication();
 
             var app = builder.Build();
 
