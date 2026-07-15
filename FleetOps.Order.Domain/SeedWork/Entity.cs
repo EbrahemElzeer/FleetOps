@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 
 namespace FleetOps.Order.Domain.SeedWork
 {
-    public abstract class BaseEntity
+    public abstract class Entity
     {
         public Guid Id { get;protected set; }
 
-        protected BaseEntity()
+        protected Entity()
         {
             
         }
 
 
-        protected BaseEntity(Guid id)
+        protected Entity(Guid id)
         {
             if (id == Guid.Empty)
                 throw new ArgumentException(
