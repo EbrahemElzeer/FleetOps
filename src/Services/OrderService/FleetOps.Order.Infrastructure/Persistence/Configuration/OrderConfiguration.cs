@@ -128,10 +128,10 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Domain.Orders.
         builder.Property(x => x.Status)
             .HasConversion<int>()
             .IsRequired();
-
+        builder.HasIndex(x => x.DriverId);
         builder.Property(x => x.CreatedAt)
             .IsRequired();
-
+        builder.HasIndex(x => x.Status);
         builder.Property(x => x.AssignedAt);
         builder.Property(x => x.AcceptedAt);
         builder.Property(x => x.PickedUpAt);
