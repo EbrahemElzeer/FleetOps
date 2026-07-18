@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using FleetOps.Order.Application.Common;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,6 @@ namespace FleetOps.Order.Application.Orders.Commands.CreateOrder
           CreateOrderLocationDto PickupLocation,
           CreateOrderLocationDto DeliveryLocation
 
-     ):IRequest<CreateOrderResponse>;
+     ):IRequest <Result<CreateOrderResponse>>;
    
 }

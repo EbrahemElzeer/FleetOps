@@ -1,4 +1,5 @@
 ﻿using FleetOps.Order.Application.Abstractions;
+using FleetOps.Order.Application.Common;
 using FleetOps.Order.Domain.Orders;
 using MediatR;
 using System;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace FleetOps.Order.Application.Orders.Commands.CreateOrder
 {
-    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, CreateOrderResponse>
+    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponse>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IOrderRepository _orderRepository;
@@ -19,7 +20,7 @@ namespace FleetOps.Order.Application.Orders.Commands.CreateOrder
             _unitOfWork = unitOfWork;
             _orderRepository = orderRepository;
         }
-        public async Task<CreateOrderResponse> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+        public async Task<Result<CreateOrderResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
         {
             var pickupLocation = OrderLocation.Create(
                   request.PickupLocation.Country,
