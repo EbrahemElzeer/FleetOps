@@ -1,3 +1,4 @@
+using FleetOps.Order.Api.CustomMiddleware;
 using FleetOps.Order.Application;
 using FleetOps.Order.Infrastructure;
 
@@ -18,6 +19,9 @@ namespace Order
             builder.Services.AddApplication();
 
             var app = builder.Build();
+
+
+            app.UseMiddleware<ExceptionHandlerMiddleware>();
 
             if (app.Environment.IsDevelopment())
             {
