@@ -11,7 +11,7 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Domain.Orders.
         builder.ToTable("Orders");
 
         builder.HasKey(x => x.Id);
-
+        builder.Property(x => x.Id).ValueGeneratedNever();
         builder.Property(x => x.CustomerName)
             .HasMaxLength(150)
             .IsRequired();

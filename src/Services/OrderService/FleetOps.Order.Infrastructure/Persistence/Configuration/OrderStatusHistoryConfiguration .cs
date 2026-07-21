@@ -12,6 +12,9 @@ public sealed class OrderStatusHistoryConfiguration : IEntityTypeConfiguration<O
 
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.Id).ValueGeneratedNever();
+   
+
         builder.Property(x => x.OrderId)
             .IsRequired();
 

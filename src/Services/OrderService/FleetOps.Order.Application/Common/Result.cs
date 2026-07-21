@@ -42,8 +42,16 @@ namespace FleetOps.Order.Application.Common
         public IReadOnlyList<Error> Errors => _errors;
 
         public static Result Success => new();
+
         public static Result Failure(Error error) => new(error);
-        public static Result Failure(List<Error> errors) => new (errors);
+
+        public static Result Failure(IEnumerable<Error> errors) => new(errors);
+
+        public static implicit operator Result(Error error)
+            => Failure(error);
+
+        public static implicit operator Result(Error[] errors)
+            => Failure(errors);
 
     }
 
