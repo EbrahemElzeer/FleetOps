@@ -1,5 +1,6 @@
 ﻿using FleetOps.Order.Application.Abstractions;
 using FleetOps.Order.Application.Common;
+using FleetOps.Order.Domain.Common;
 using MediatR;
 using System;
 using System.Collections.Generic;

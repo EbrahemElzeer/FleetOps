@@ -1,5 +1,6 @@
 ﻿using FleetOps.Order.Application.Abstractions;
 using FleetOps.Order.Application.Common;
+using FleetOps.Order.Domain.Common;
 using FleetOps.Order.Domain.Orders;
 using MediatR;
 using System;
@@ -22,7 +23,7 @@ namespace FleetOps.Order.Application.Orders.Commands.CreateOrder
         }
         public async Task<Result<CreateOrderResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
         {
-            var pickupLocation = OrderLocation.Create(
+            var pickupLocationResult = OrderLocation.Create(
                   request.PickupLocation.Country,
                   request.PickupLocation.Governorate,
                   request.PickupLocation.City,
@@ -33,8 +34,10 @@ namespace FleetOps.Order.Application.Orders.Commands.CreateOrder
                   request.PickupLocation.Latitude,
                   request.PickupLocation.Longitude);
 
-
-            var deliveryLocation = OrderLocation.Create(
+            if (pickupLocationResult.IsFailure)
+                return Result<CreateOrderResponse>.Failure(pickupLocationResult.Errors);
+         
+            var deliveryLocationResult = OrderLocation.Create(
                   request.DeliveryLocation.Country,
                   request.DeliveryLocation.Governorate,
                   request.DeliveryLocation.City,
@@ -45,13 +48,18 @@ namespace FleetOps.Order.Application.Orders.Commands.CreateOrder
                   request.DeliveryLocation.Latitude,
                   request.DeliveryLocation.Longitude);
 
-            var order = new Order.Domain.Orders.Order(
+            if (deliveryLocationResult.IsFailure)
+                return Result<CreateOrderResponse>.Failure(deliveryLocationResult.Errors);
+            var orderResult =  Order.Domain.Orders.Order.Create(
                 request.CustomerName,
                 request.CustomerPhone,
-                pickupLocation,
-                deliveryLocation
+                pickupLocationResult.Value,
+                deliveryLocationResult.Value);
 
-                );
+            if (orderResult.IsFailure)
+                return Result<CreateOrderResponse>.Failure(orderResult.Errors);
+          
+            var order = orderResult.Value;
             await _orderRepository.AddAsync(order, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return new CreateOrderResponse(

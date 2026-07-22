@@ -1,12 +1,8 @@
 ﻿using FleetOps.Order.Application.Abstractions;
-using FleetOps.Order.Application.Common;
+using FleetOps.Order.Domain.Common;
 using FleetOps.Order.Domain.Orders;
+using FleetOps.Order.Domain.Orders.Enums;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FleetOps.Order.Application.Orders.Commands.AssignDriver
 {
@@ -23,26 +19,15 @@ namespace FleetOps.Order.Application.Orders.Commands.AssignDriver
         public async Task<Result>  Handle(AssignDriverCommand request, CancellationToken cancellationToken)
         {
 
-            if (request.DriverId == Guid.Empty)
-            {
-                return Error.Validation(
-                    code: "Orders.InvalidDriverId",
-                    description: "Driver id is required.");
-            }
-
             var order= await _orderRepository.GetByIdAsync(request.OrderId,cancellationToken);
-            if (order == null) {
-                return Error.NotFound(code: "Order.NotFound",
-                        description: $"The order with ID '{request.OrderId}' was not found."); }
-          
-            if (order.Status != OrderStatus.Pending)
-                return Error.Conflict(code: "Order.Conflict", description: $"The Status Order must be Pending");
-            order.AssignDriver(driverId: request.DriverId);
+            if (order is null) return OrderErrors.NotFound(request.OrderId);
+
+            var result=  order.AssignDriver(driverId: request.DriverId);
+            if (result.IsFailure) return result;
 
             var affectedRows = await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success;
-
         }
     }
 }

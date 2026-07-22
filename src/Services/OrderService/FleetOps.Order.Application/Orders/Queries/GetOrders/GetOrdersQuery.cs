@@ -1,12 +1,7 @@
-﻿using FleetOps.Order.Application.Common;
+﻿using FleetOps.Order.Domain.Common;
 using FleetOps.Order.Application.Common.Pagination;
-using FleetOps.Order.Domain.Orders;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FleetOps.Order.Domain.Orders.Enums;
 
 namespace FleetOps.Order.Application.Orders.Queries.GetOrders
 {

@@ -1,4 +1,5 @@
-﻿using FleetOps.Order.Domain.SeedWork;
+﻿using FleetOps.Order.Domain.Orders.Enums;
+using FleetOps.Order.Domain.SeedWork;
 using System;
 using System.Collections.Generic;
 using System.Linq;

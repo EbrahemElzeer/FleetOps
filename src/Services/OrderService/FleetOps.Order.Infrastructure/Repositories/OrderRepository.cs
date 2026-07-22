@@ -1,7 +1,7 @@
 ﻿using FleetOps.Order.Application.Abstractions;
 using FleetOps.Order.Application.Common.Pagination;
 using FleetOps.Order.Application.Orders.Queries.GetOrders;
-using FleetOps.Order.Domain.Orders;
+using FleetOps.Order.Domain.Orders.Enums;
 using FleetOps.Order.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System;

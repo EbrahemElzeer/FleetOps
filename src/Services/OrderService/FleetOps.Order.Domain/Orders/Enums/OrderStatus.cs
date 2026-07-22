@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FleetOps.Order.Domain.Orders
+namespace FleetOps.Order.Domain.Orders.Enums
 {
     public enum OrderStatus
     {

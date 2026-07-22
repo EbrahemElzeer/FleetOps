@@ -1,4 +1,4 @@
-﻿namespace FleetOps.Order.Application.Common;
+﻿namespace FleetOps.Order.Domain.Common;
 
 public sealed record Error(
     string Code,

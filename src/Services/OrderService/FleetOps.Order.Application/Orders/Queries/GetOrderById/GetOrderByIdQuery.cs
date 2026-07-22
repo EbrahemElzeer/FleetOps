@@ -1,10 +1,5 @@
-﻿using FleetOps.Order.Application.Common;
+﻿using FleetOps.Order.Domain.Common;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FleetOps.Order.Application.Orders.Queries.GetOrderById
 {

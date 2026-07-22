@@ -1,4 +1,4 @@
-﻿using FleetOps.Order.Application.Common;
+﻿using FleetOps.Order.Domain.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;

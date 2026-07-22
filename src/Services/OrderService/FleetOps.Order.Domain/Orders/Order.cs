@@ -1,4 +1,6 @@
-﻿using FleetOps.Order.Domain.SeedWork;
+﻿using FleetOps.Order.Domain.Common;
+using FleetOps.Order.Domain.Orders.Enums;
+using FleetOps.Order.Domain.SeedWork;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,22 +45,13 @@ namespace FleetOps.Order.Domain.Orders
         private Order() { }
 
 
-        public Order(
-            string customerName,
-            string customerPhone,
-            OrderLocation pickupLocation,
-            OrderLocation deliveryLocation) : base(Guid.NewGuid())
+        private Order(
+       string customerName,
+       string customerPhone,
+       OrderLocation pickupLocation,
+       OrderLocation deliveryLocation)
+       : base(Guid.NewGuid())
         {
-            if (string.IsNullOrWhiteSpace(customerName))
-                throw new ArgumentException("Customer name is required.", nameof(customerName));
-
-            if (string.IsNullOrWhiteSpace(customerPhone))
-                throw new ArgumentException("Customer phone is required.", nameof(customerPhone));
-
-
-            ArgumentNullException.ThrowIfNull(pickupLocation);
-            ArgumentNullException.ThrowIfNull(deliveryLocation);
-
             TrackingNumber = TrackingNumber.Create();
 
             CustomerName = customerName.Trim();
@@ -71,11 +64,40 @@ namespace FleetOps.Order.Domain.Orders
             CreatedAt = DateTime.UtcNow;
         }
 
-        public void AssignDriver(Guid driverId)
+        public static Result<Order> Create(
+            string customerName,
+            string customerPhone,
+            OrderLocation? pickupLocation,
+            OrderLocation? deliveryLocation)
         {
+            var errors = new List<Error>();
 
-            if (driverId == Guid.Empty) throw new ArgumentException("Driver id is required",nameof(driverId));
-            if (Status != OrderStatus.Pending) throw new InvalidOperationException("Only pending orders can be assigned.");
+            if (string.IsNullOrWhiteSpace(customerName))
+                errors.Add(OrderErrors.CustomerNameRequired);
+
+            if (string.IsNullOrWhiteSpace(customerPhone))
+                errors.Add(OrderErrors.CustomerPhoneRequired);
+
+            if (pickupLocation is null)
+                errors.Add(OrderErrors.PickupLocationRequired);
+
+            if (deliveryLocation is null)
+                errors.Add(OrderErrors.DeliveryLocationRequired);
+
+            if (errors.Count > 0)
+                return Result<Order>.Failure(errors);
+
+            return new Order(
+                customerName,
+                customerPhone,
+                pickupLocation!,
+                deliveryLocation!);
+        }
+
+        public Result AssignDriver(Guid driverId)
+        {
+            if (driverId == Guid.Empty) return OrderErrors.DriverIdRequired;
+            if (Status != OrderStatus.Pending) return OrderErrors.CannotAssignDriver(Status);
 
             var oldStatus = Status;
 
@@ -84,15 +106,16 @@ namespace FleetOps.Order.Domain.Orders
             AssignedAt = DateTime.UtcNow;
 
             AddStatusHistory(oldStatus, Status, "Driver assigned manually.");
+            return Result.Success;
         }
 
 
-        public void AcceptByDriver(Guid driverId)
+        public Result AcceptByDriver(Guid driverId)
         {
-            EnsureAssignedDriver(driverId);
-
-            if (Status != OrderStatus.Assigned)
-                throw new InvalidOperationException("Only assigned orders can be accepted.");
+            var driverValidationResult = EnsureAssignedDriver(driverId);
+            if (driverValidationResult.IsFailure) return driverValidationResult;
+           
+            if (Status != OrderStatus.Assigned) return OrderErrors.CannotAccept(Status);
 
             var oldStatus = Status;
 
@@ -100,47 +123,44 @@ namespace FleetOps.Order.Domain.Orders
             AcceptedAt = DateTime.UtcNow;
 
             AddStatusHistory(oldStatus, Status, "Driver accepted the order.");
+            return Result.Success;
         }
 
-        public void MarkAsPickedUp(Guid driverId)
+        public Result MarkAsPickedUp(Guid driverId)
         {
-            EnsureAssignedDriver(driverId);
+            var driverValidationResult = EnsureAssignedDriver(driverId);
+            if (driverValidationResult.IsFailure) return driverValidationResult;
+       
 
-            if (Status != OrderStatus.DriverAccepted)
-                throw new InvalidOperationException("Order must be accepted before pickup.");
+            if (Status != OrderStatus.DriverAccepted) return OrderErrors.CannotMarkAsPickedUp(Status);
 
             var oldStatus = Status;
-
             Status = OrderStatus.PickedUp;
             PickedUpAt = DateTime.UtcNow;
 
             AddStatusHistory(oldStatus, Status, "Order picked up by driver.");
+            return Result.Success;
         }
 
-        public void MarkAsDelivered(Guid driverId)
+        public Result MarkAsDelivered(Guid driverId)
         {
-            EnsureAssignedDriver(driverId);
+            var driverValidationResult = EnsureAssignedDriver(driverId);
 
-            if (Status != OrderStatus.PickedUp )
-                throw new InvalidOperationException("Order must be picked up before delivery.");
+            if (Status != OrderStatus.PickedUp) return OrderErrors.CannotMarkAsDelivered(Status);
 
             var oldStatus = Status;
 
             Status = OrderStatus.Delivered;
             DeliveredAt = DateTime.UtcNow;
-
             AddStatusHistory(oldStatus, Status, "Order delivered.");
+            return Result.Success;
         }
-        public void Cancel(string? reason = null)
+        public Result Cancel(string? reason = null)
         {
             if (Status is not OrderStatus.Pending
                 and not OrderStatus.Assigned
-                and not OrderStatus.DriverAccepted)
-            {
-                throw new InvalidOperationException(
-                    $"Order cannot be cancelled while its status is {Status}.");
-            }
-
+                and not OrderStatus.DriverAccepted) return OrderErrors.CannotCancel(Status);
+          
             var oldStatus = Status;
 
             Status = OrderStatus.Cancelled;
@@ -152,36 +172,24 @@ namespace FleetOps.Order.Domain.Orders
                 string.IsNullOrWhiteSpace(reason)
                     ? "Order cancelled."
                     : reason.Trim());
+
+            return Result.Success;
         }
 
 
 
-        public void MarkDeliveryFailed(
-    Guid driverId,
-    DeliveryFailureReason reason,
-    string? notes = null)
+        public Result MarkDeliveryFailed(Guid driverId,DeliveryFailureReason reason,string? notes = null)
         {
-            EnsureAssignedDriver(driverId);
+            var driverValidationResult = EnsureAssignedDriver(driverId);
+            if (driverValidationResult.IsFailure) return driverValidationResult;
 
-            if (Status != OrderStatus.PickedUp)
-                throw new InvalidOperationException(
-                    "Only picked-up orders can be marked as delivery failed.");
+            if (Status != OrderStatus.PickedUp) return OrderErrors.CannotMarkDeliveryFailed(Status);
+            if (!Enum.IsDefined(reason)) return OrderErrors.InvalidDeliveryFailureReason;
 
-            if (!Enum.IsDefined(reason))
-                throw new ArgumentOutOfRangeException(
-                    nameof(reason),
-                    "Invalid delivery failure reason.");
-
-            if (reason == DeliveryFailureReason.Other &&
-                string.IsNullOrWhiteSpace(notes))
-            {
-                throw new ArgumentException(
-                    "Notes are required when failure reason is Other.",
-                    nameof(notes));
-            }
+            if (reason == DeliveryFailureReason.Other && string.IsNullOrWhiteSpace(notes))
+                return OrderErrors.DeliveryFailureNotesRequired;
 
             var oldStatus = Status;
-
             Status = OrderStatus.DeliveryFailed;
             FailureReason = reason;
             DeliveryFailureNotes = string.IsNullOrWhiteSpace(notes)
@@ -194,14 +202,14 @@ namespace FleetOps.Order.Domain.Orders
                 oldStatus,
                 Status,
                 BuildDeliveryFailureHistoryNote(reason, notes));
+
+            return Result.Success;
         }
 
-        public void StartReturnToSender()
+        public Result StartReturnToSender()
         {
-            if (Status != OrderStatus.DeliveryFailed)
-                throw new InvalidOperationException(
-                    "Only delivery-failed orders can be returned to sender.");
-
+            if (Status != OrderStatus.DeliveryFailed) return OrderErrors.CannotStartReturnToSender(Status);
+          
             var oldStatus = Status;
 
             Status = OrderStatus.ReturningToSender;
@@ -211,6 +219,7 @@ namespace FleetOps.Order.Domain.Orders
                 oldStatus,
                 Status,
                 "Return to sender started.");
+            return Result.Success;
         }
 
         private static string BuildDeliveryFailureHistoryNote(DeliveryFailureReason reason, string? notes)
@@ -223,13 +232,15 @@ namespace FleetOps.Order.Domain.Orders
             return message;
         }
 
-        public void MarkAsReturned(Guid driverId)
+        public Result MarkAsReturned(Guid driverId)
         {
-            EnsureAssignedDriver(driverId);
+            var driverValidationResult = EnsureAssignedDriver(driverId);
+
+            if (driverValidationResult.IsFailure)
+                return driverValidationResult;
 
             if (Status != OrderStatus.ReturningToSender)
-                throw new InvalidOperationException(
-                    "Only orders returning to sender can be marked as returned.");
+                return OrderErrors.CannotMarkAsReturned(Status);
 
             var oldStatus = Status;
 
@@ -240,23 +251,21 @@ namespace FleetOps.Order.Domain.Orders
                 oldStatus,
                 Status,
                 "Order returned to sender.");
+
+            return Result.Success;
         }
 
 
 
 
-        private void EnsureAssignedDriver(Guid driverId)
+        private Result  EnsureAssignedDriver(Guid driverId)
         {
-            if (driverId == Guid.Empty)
-                throw new ArgumentException(
-                      "Driver id is required.",
-                       nameof(driverId));
+            if (driverId == Guid.Empty) return OrderErrors.DriverIdRequired;
+           
+            if (DriverId is null) return OrderErrors.OrderHasNoAssignedDriver;
 
-            if (DriverId is null)
-                throw new InvalidOperationException("Order is not assigned to any driver.");
-
-            if (DriverId.Value != driverId)
-                throw new InvalidOperationException("This order is assigned to another driver.");
+            if (DriverId.Value != driverId) return OrderErrors.AssignedToAnotherDriver;
+            return Result.Success;
         }
 
 
