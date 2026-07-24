@@ -145,6 +145,8 @@ namespace FleetOps.Order.Domain.Orders
         public Result MarkAsDelivered(Guid driverId)
         {
             var driverValidationResult = EnsureAssignedDriver(driverId);
+            if (driverValidationResult.IsFailure) return driverValidationResult;
+               
 
             if (Status != OrderStatus.PickedUp) return OrderErrors.CannotMarkAsDelivered(Status);
 
