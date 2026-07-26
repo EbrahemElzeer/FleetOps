@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+	  <IsPackable>false</IsPackable>
+	  <IsTestProject>true</IsTestProject>
+	  <PreserveCompilationContext>true</PreserveCompilationContext>
+	  <GenerateDepsFile>true</GenerateDepsFile>
+  </PropertyGroup>
+
+
+
+
+	
+	
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="8.10.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.18" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.18" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+
+	
+
+	<ItemGroup>
+    <ProjectReference Include="..\..\FleetOps.Order.Api\FleetOps.Order.Api.csproj" />
+    <ProjectReference Include="..\..\FleetOps.Order.Application\FleetOps.Order.Application.csproj" />
+    <ProjectReference Include="..\..\FleetOps.Order.Domain\FleetOps.Order.Domain.csproj" />
+    <ProjectReference Include="..\..\FleetOps.Order.Infrastructure\FleetOps.Order.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
