@@ -1,0 +1,337 @@
+﻿using FleetOps.Order.Application.Abstractions;
+using FleetOps.Order.Application.Orders.Commands.MarkAsReturned;
+using FleetOps.Order.Domain.Orders;
+using FleetOps.Order.Domain.Orders.Enums;
+using FluentAssertions;
+using Moq;
+using Xunit;
+
+namespace FleetOps.Order.Tests.Application.OrdersTests.CommandsTests.MarkAsReturnedTests;
+
+public class MarkAsReturnedCommandHandlerTests
+{
+    private readonly Mock<IOrderRepository> _orderRepositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly MarkAsReturnedCommandHandler _handler;
+
+    public MarkAsReturnedCommandHandlerTests()
+    {
+        _orderRepositoryMock = new Mock<IOrderRepository>();
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
+
+        _handler = new MarkAsReturnedCommandHandler(
+            _unitOfWorkMock.Object,
+            _orderRepositoryMock.Object);
+    }
+
+    [Fact]
+    public async Task Handle_WhenOrderIsReturningToSender_ShouldMarkOrderAsReturned()
+    {
+        // Arrange
+        var driverId = Guid.NewGuid();
+        var order = CreateReturningToSenderOrder(driverId);
+
+        var command = new MarkAsReturnedCommand(
+            order.Id,
+            driverId);
+
+        SetupOrderRepository(command.OrderId, order);
+
+        // Act
+        var result = await _handler.Handle(
+            command,
+            CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+
+        order.Status.Should().Be(OrderStatus.Returned);
+        order.ReturnedAt.Should().NotBeNull();
+
+        VerifyOrderWasSaved();
+    }
+
+    [Fact]
+    public async Task Handle_WhenOrderIdIsEmpty_ShouldReturnOrderIdRequiredWithoutSaving()
+    {
+        // Arrange
+        var command = new MarkAsReturnedCommand(
+            Guid.Empty,
+            Guid.NewGuid());
+
+        // Act
+        var result = await _handler.Handle(
+            command,
+            CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Errors.Should().Contain(
+            OrderErrors.OrderIdRequired);
+
+        _orderRepositoryMock.Verify(
+            repository => repository.GetByIdAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+
+        VerifyOrderWasNotSaved();
+    }
+
+    [Fact]
+    public async Task Handle_WhenOrderDoesNotExist_ShouldReturnNotFoundWithoutSaving()
+    {
+        // Arrange
+        var orderId = Guid.NewGuid();
+
+        var command = new MarkAsReturnedCommand(
+            orderId,
+            Guid.NewGuid());
+
+        SetupOrderRepository(orderId, null);
+
+        // Act
+        var result = await _handler.Handle(
+            command,
+            CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Errors.Should().Contain(
+            OrderErrors.NotFound(orderId));
+
+        VerifyOrderWasNotSaved();
+    }
+
+    [Fact]
+    public async Task Handle_WhenDriverIdIsEmpty_ShouldReturnFailureWithoutSaving()
+    {
+        // Arrange
+        var assignedDriverId = Guid.NewGuid();
+        var order = CreateReturningToSenderOrder(assignedDriverId);
+
+        var command = new MarkAsReturnedCommand(
+            order.Id,
+            Guid.Empty);
+
+        SetupOrderRepository(command.OrderId, order);
+
+        // Act
+        var result = await _handler.Handle(
+            command,
+            CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Errors.Should().Contain(
+            OrderErrors.DriverIdRequired);
+
+        order.Status.Should().Be(OrderStatus.ReturningToSender);
+        order.ReturnedAt.Should().BeNull();
+
+        VerifyOrderWasNotSaved();
+    }
+
+    [Fact]
+    public async Task Handle_WhenOrderIsAssignedToAnotherDriver_ShouldReturnFailureWithoutSaving()
+    {
+        // Arrange
+        var assignedDriverId = Guid.NewGuid();
+        var anotherDriverId = Guid.NewGuid();
+
+        var order = CreateReturningToSenderOrder(assignedDriverId);
+
+        var command = new MarkAsReturnedCommand(
+            order.Id,
+            anotherDriverId);
+
+        SetupOrderRepository(command.OrderId, order);
+
+        // Act
+        var result = await _handler.Handle(
+            command,
+            CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Errors.Should().Contain(
+            OrderErrors.AssignedToAnotherDriver);
+
+        order.Status.Should().Be(OrderStatus.ReturningToSender);
+        order.ReturnedAt.Should().BeNull();
+
+        VerifyOrderWasNotSaved();
+    }
+
+    [Fact]
+    public async Task Handle_WhenOrderIsNotReturningToSender_ShouldReturnFailureWithoutSaving()
+    {
+        // Arrange
+        var driverId = Guid.NewGuid();
+        var order = CreateDeliveryFailedOrder(driverId);
+
+        var command = new MarkAsReturnedCommand(
+            order.Id,
+            driverId);
+
+        SetupOrderRepository(command.OrderId, order);
+
+        // Act
+        var result = await _handler.Handle(
+            command,
+            CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Errors.Should().Contain(
+            OrderErrors.CannotMarkAsReturned(
+                OrderStatus.DeliveryFailed));
+
+        order.Status.Should().Be(OrderStatus.DeliveryFailed);
+        order.ReturnedAt.Should().BeNull();
+
+        VerifyOrderWasNotSaved();
+    }
+
+    private void SetupOrderRepository(
+        Guid orderId,
+        Domain.Orders.Order? order)
+    {
+        _orderRepositoryMock
+            .Setup(repository => repository.GetByIdAsync(
+                orderId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(order);
+    }
+
+    private void VerifyOrderWasSaved()
+    {
+        _unitOfWorkMock.Verify(
+            unitOfWork => unitOfWork.SaveChangesAsync(
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    private void VerifyOrderWasNotSaved()
+    {
+        _unitOfWorkMock.Verify(
+            unitOfWork => unitOfWork.SaveChangesAsync(
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    private static Domain.Orders.Order CreateReturningToSenderOrder(
+        Guid driverId)
+    {
+        var order = CreateDeliveryFailedOrder(driverId);
+
+        var result = order.StartReturnToSender();
+
+        result.IsSuccess.Should().BeTrue();
+
+        return order;
+    }
+
+    private static Domain.Orders.Order CreateDeliveryFailedOrder(
+        Guid driverId)
+    {
+        var order = CreatePickedUpOrder(driverId);
+
+        var result = order.MarkDeliveryFailed(
+            driverId,
+            DeliveryFailureReason.CustomerUnavailable,
+            "Customer did not answer.");
+
+        result.IsSuccess.Should().BeTrue();
+
+        return order;
+    }
+
+    private static Domain.Orders.Order CreatePickedUpOrder(
+        Guid driverId)
+    {
+        var order = CreateDriverAcceptedOrder(driverId);
+
+        var result = order.MarkAsPickedUp(driverId);
+
+        result.IsSuccess.Should().BeTrue();
+
+        return order;
+    }
+
+    private static Domain.Orders.Order CreateDriverAcceptedOrder(
+        Guid driverId)
+    {
+        var order = CreateAssignedOrder(driverId);
+
+        var result = order.AcceptByDriver(driverId);
+
+        result.IsSuccess.Should().BeTrue();
+
+        return order;
+    }
+
+    private static Domain.Orders.Order CreateAssignedOrder(
+        Guid driverId)
+    {
+        var order = CreatePendingOrder();
+
+        var result = order.AssignDriver(driverId);
+
+        result.IsSuccess.Should().BeTrue();
+
+        return order;
+    }
+
+    private static Domain.Orders.Order CreatePendingOrder()
+    {
+        var pickupLocation = CreateLocation();
+
+        var deliveryLocation = CreateLocation(
+            governorate: "Giza",
+            city: "Dokki",
+            area: "Mesaha",
+            street: "Tahrir Street",
+            buildingNumber: "10",
+            landmark: "Dokki Square",
+            latitude: 30.0384m,
+            longitude: 31.2122m);
+
+        var result = Domain.Orders.Order.Create(
+            customerName: "Ahmed Mohamed",
+            customerPhone: "01012345678",
+            pickupLocation,
+            deliveryLocation);
+
+        result.IsSuccess.Should().BeTrue();
+
+        return result.Value;
+    }
+
+    private static OrderLocation CreateLocation(
+        string country = "Egypt",
+        string governorate = "Cairo",
+        string city = "Nasr City",
+        string area = "Abbas El Akkad",
+        string street = "Mostafa El Nahas",
+        string? buildingNumber = "25",
+        string? landmark = "City Stars",
+        decimal latitude = 30.0566m,
+        decimal longitude = 31.3301m)
+    {
+        var result = OrderLocation.Create(
+            country,
+            governorate,
+            city,
+            area,
+            street,
+            buildingNumber,
+            landmark,
+            latitude,
+            longitude);
+
+        result.IsSuccess.Should().BeTrue();
+
+        return result.Value;
+    }
+}

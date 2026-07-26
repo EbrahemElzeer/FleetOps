@@ -5,7 +5,7 @@ using MediatR;
 
 namespace FleetOps.Order.Application.Orders.Commands.StartReturnToSender
 {
-    internal class StartReturnToSenderCommandHandler : IRequestHandler<StartReturnToSenderCommand, Result>
+    public class StartReturnToSenderCommandHandler : IRequestHandler<StartReturnToSenderCommand, Result>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IOrderRepository _orderRepository;
