@@ -17,9 +17,9 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\src\Services\OrderService\FleetOps.Order.Application\FleetOps.Order.Application.csproj" />
-    <ProjectReference Include="..\src\Services\OrderService\FleetOps.Order.Domain\FleetOps.Order.Domain.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\FleetOps.Order.Application\FleetOps.Order.Application.csproj" />
+		<ProjectReference Include="..\..\FleetOps.Order.Domain\FleetOps.Order.Domain.csproj" />
+	</ItemGroup>
 
 </Project>
