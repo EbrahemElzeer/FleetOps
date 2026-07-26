@@ -1,6 +1,7 @@
 ﻿using FleetOps.Order.Application.Abstractions;
 using FleetOps.Order.Application.Common;
 using FleetOps.Order.Domain.Common;
+using FleetOps.Order.Domain.Orders;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -18,18 +19,12 @@ namespace FleetOps.Order.Application.Orders.Queries.GetOrderById
         {
             _orderRepository = orderRepository;
         }
-        public async Task<Result<OrderDetailsResponse?>> Handle(GetOrderByIdQuery request, CancellationToken ct)
+        public async Task<Result<OrderDetailsResponse>> Handle(GetOrderByIdQuery request, CancellationToken ct)
         {
             var order = await _orderRepository.GetByIdAsync(request.Id, ct);
 
-            if (order is null)
-
-            {
-              return  Error.NotFound(
-                    code: "Order.NotFound",
-                    description: $"The order with ID '{request.Id}' was not found.");
-            }
-
+            if (order is null) return OrderErrors.NotFound(request.Id);
+       
             return new OrderDetailsResponse(
             order.Id,
             order.TrackingNumber.Value,
