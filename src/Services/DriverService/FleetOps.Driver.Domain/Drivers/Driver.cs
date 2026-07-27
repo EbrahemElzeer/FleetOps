@@ -56,7 +56,7 @@ namespace FleetOps.Driver.Domain.Drivers
         public DriverSuspensionReason? SuspensionReason { get; private set; }
 
         public string? SuspensionNotes { get; private set; }
-        public static Result<Driver> Create(string fullName,string phoneNumber,VehicleType vehicleType, string vehiclePlateNumber)
+        public static Result<Driver> Create(string? fullName,string? phoneNumber,VehicleType vehicleType, string? vehiclePlateNumber)
         {
             if (string.IsNullOrWhiteSpace(fullName))
                 return DriverErrors.FullNameRequired;
