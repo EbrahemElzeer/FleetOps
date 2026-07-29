@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace FleetOps.Order.Api.Controllers
+namespace FleetOps.Driver.Api.Controllers
 {
   
     [ApiController]

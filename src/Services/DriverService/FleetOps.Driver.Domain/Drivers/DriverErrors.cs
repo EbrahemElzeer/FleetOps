@@ -58,4 +58,8 @@ public static class DriverErrors
     public static Error NotEligible(DriverStatus status) => Error.Conflict(
         code: "Drivers.NotEligible",
         description: $"Driver is not eligible for assignment while status is '{status}'.");
+
+    public static Error NotFound(Guid driverId) => Error.NotFound(
+        code: "Drivers.NotFound",
+        description: $"Driver with ID '{driverId}' was not found.");
 }
