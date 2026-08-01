@@ -1,9 +1,12 @@
-﻿using FleetOps.Driver.Application.Common.Pagination;
+﻿using FleetOps.Driver.Api.Contracts;
+using FleetOps.Driver.Application.Common.Pagination;
 using FleetOps.Driver.Application.Drivers.Commands.CreateDriver;
 using FleetOps.Driver.Application.Drivers.Commands.GoOffline;
 using FleetOps.Driver.Application.Drivers.Commands.GoOnline;
+using FleetOps.Driver.Application.Drivers.Commands.SuspendDriver;
 using FleetOps.Driver.Application.Drivers.Queries.GetDriverById;
 using FleetOps.Driver.Application.Drivers.Queries.GetDrivers;
+using FleetOps.Driver.Domain.Drivers.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -58,6 +61,29 @@ namespace FleetOps.Driver.Api.Controllers
         {
             var result = await _sender.Send(
                 new GoOfflineCommand(id),
+                cancellationToken);
+
+            return HandleResult(result);
+        }
+
+        [HttpGet("suspension-reasons")]
+        public ActionResult<IReadOnlyList<EnumLookupResponse>> GetSuspensionReasons()
+        {
+            var reasons = Enum.GetValues<DriverSuspensionReason>()
+                .Select(reason => new EnumLookupResponse(
+                    (int)reason,
+                    reason.ToString()))
+                .ToList();
+
+            return Ok(reasons);
+        }
+
+
+        [HttpPut("{id:guid}/suspend")]
+        public async Task<ActionResult> Suspend(Guid id,SuspendDriverDto request,CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(
+                new SuspendDriverCommand(id, request),
                 cancellationToken);
 
             return HandleResult(result);
