@@ -1,5 +1,6 @@
 ﻿using FleetOps.Driver.Application.Common.Pagination;
 using FleetOps.Driver.Application.Drivers.Commands.CreateDriver;
+using FleetOps.Driver.Application.Drivers.Commands.GoOnline;
 using FleetOps.Driver.Application.Drivers.Queries.GetDriverById;
 using FleetOps.Driver.Application.Drivers.Queries.GetDrivers;
 using MediatR;
@@ -38,6 +39,15 @@ namespace FleetOps.Driver.Api.Controllers
         public async Task<ActionResult<PagedResponse<DriverListItemResponse>>> GetDrivers([FromQuery] GetDriversQuery query,CancellationToken cancellationToken)
         {
             var result = await _sender.Send(query, cancellationToken);
+
+            return HandleResult(result);
+        }
+        [HttpPut("{id:guid}/online")]
+        public async Task<ActionResult> GoOnline(Guid id,CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(
+                new GoOnlineCommand(id),
+                cancellationToken);
 
             return HandleResult(result);
         }
