@@ -1,5 +1,6 @@
 ﻿using FleetOps.Driver.Application.Common.Pagination;
 using FleetOps.Driver.Application.Drivers.Commands.CreateDriver;
+using FleetOps.Driver.Application.Drivers.Commands.GoOffline;
 using FleetOps.Driver.Application.Drivers.Commands.GoOnline;
 using FleetOps.Driver.Application.Drivers.Queries.GetDriverById;
 using FleetOps.Driver.Application.Drivers.Queries.GetDrivers;
@@ -47,6 +48,16 @@ namespace FleetOps.Driver.Api.Controllers
         {
             var result = await _sender.Send(
                 new GoOnlineCommand(id),
+                cancellationToken);
+
+            return HandleResult(result);
+        }
+
+        [HttpPut("{id:guid}/offline")]
+        public async Task<ActionResult> GoOffline(Guid id,CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(
+                new GoOfflineCommand(id),
                 cancellationToken);
 
             return HandleResult(result);
