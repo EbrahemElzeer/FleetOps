@@ -1,5 +1,5 @@
+using FleetOps.Driver.Application;
 using FleetOps.Driver.Infrastructure;
-
 namespace FleetOps.Driver.Api
 {
     public class Program
@@ -14,6 +14,8 @@ namespace FleetOps.Driver.Api
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddApplication();
+            builder.Services.AddInfrastructure(builder.Configuration);
 
             var app = builder.Build();
 

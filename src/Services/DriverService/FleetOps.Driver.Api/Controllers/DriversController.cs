@@ -1,5 +1,7 @@
-﻿using FleetOps.Driver.Application.Drivers.Commands.CreateDriver;
+﻿using FleetOps.Driver.Application.Common.Pagination;
+using FleetOps.Driver.Application.Drivers.Commands.CreateDriver;
 using FleetOps.Driver.Application.Drivers.Queries.GetDriverById;
+using FleetOps.Driver.Application.Drivers.Queries.GetDrivers;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +31,14 @@ namespace FleetOps.Driver.Api.Controllers
         {
             var result = await _sender.Send( new GetDriverByIdQuery(id),cancellationToken);
                
+            return HandleResult(result);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<PagedResponse<DriverListItemResponse>>> GetDrivers([FromQuery] GetDriversQuery query,CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(query, cancellationToken);
+
             return HandleResult(result);
         }
     }
