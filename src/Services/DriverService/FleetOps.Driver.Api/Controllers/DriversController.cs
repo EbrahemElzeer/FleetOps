@@ -1,5 +1,6 @@
 ﻿using FleetOps.Driver.Api.Contracts;
 using FleetOps.Driver.Application.Common.Pagination;
+using FleetOps.Driver.Application.Drivers.Commands.ActivateDriver;
 using FleetOps.Driver.Application.Drivers.Commands.CreateDriver;
 using FleetOps.Driver.Application.Drivers.Commands.GoOffline;
 using FleetOps.Driver.Application.Drivers.Commands.GoOnline;
@@ -88,5 +89,17 @@ namespace FleetOps.Driver.Api.Controllers
 
             return HandleResult(result);
         }
+
+        [HttpPut("{id:guid}/activate")]
+        public async Task<ActionResult> Activate(Guid id,CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(
+                new ActivateDriverCommand(id),
+                cancellationToken);
+
+            return HandleResult(result);
+        }
+
+
     }
 }
