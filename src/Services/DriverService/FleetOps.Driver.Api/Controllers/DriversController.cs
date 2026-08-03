@@ -4,6 +4,7 @@ using FleetOps.Driver.Application.Drivers.Commands.ActivateDriver;
 using FleetOps.Driver.Application.Drivers.Commands.CreateDriver;
 using FleetOps.Driver.Application.Drivers.Commands.GoOffline;
 using FleetOps.Driver.Application.Drivers.Commands.GoOnline;
+using FleetOps.Driver.Application.Drivers.Commands.ReserveDriver;
 using FleetOps.Driver.Application.Drivers.Commands.SuspendDriver;
 using FleetOps.Driver.Application.Drivers.Queries.CheckDriverEligibility;
 using FleetOps.Driver.Application.Drivers.Queries.GetDriverById;
@@ -106,6 +107,16 @@ namespace FleetOps.Driver.Api.Controllers
         {
             var result = await _sender.Send(
                 new CheckDriverEligibilityQuery(id),
+                cancellationToken);
+
+            return HandleResult(result);
+        }
+
+        [HttpPut("{id:guid}/reserve")]
+        public async Task<ActionResult> Reserve(Guid id,CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(
+                new ReserveDriverCommand(id),
                 cancellationToken);
 
             return HandleResult(result);
