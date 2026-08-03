@@ -5,6 +5,7 @@ using FleetOps.Driver.Application.Drivers.Commands.CreateDriver;
 using FleetOps.Driver.Application.Drivers.Commands.GoOffline;
 using FleetOps.Driver.Application.Drivers.Commands.GoOnline;
 using FleetOps.Driver.Application.Drivers.Commands.SuspendDriver;
+using FleetOps.Driver.Application.Drivers.Queries.CheckDriverEligibility;
 using FleetOps.Driver.Application.Drivers.Queries.GetDriverById;
 using FleetOps.Driver.Application.Drivers.Queries.GetDrivers;
 using FleetOps.Driver.Domain.Drivers.Enums;
@@ -100,6 +101,14 @@ namespace FleetOps.Driver.Api.Controllers
             return HandleResult(result);
         }
 
+        [HttpGet("{id:guid}/eligibility")]
+        public async Task<ActionResult<DriverEligibilityResponse>> CheckEligibility(Guid id,CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(
+                new CheckDriverEligibilityQuery(id),
+                cancellationToken);
 
+            return HandleResult(result);
+        }
     }
 }
