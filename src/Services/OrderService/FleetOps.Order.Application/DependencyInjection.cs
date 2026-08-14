@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using FleetOps.Order.Application.Abstractions;
+using FleetOps.Order.Application.Sagas.AssignDriver;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FleetOps.Order.Application;
 
@@ -10,7 +12,7 @@ public static class DependencyInjection
         {
             config.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
         });
-
+        services.AddScoped<IAssignDriverSaga, AssignDriverSaga>();
         return services;
     }
 }

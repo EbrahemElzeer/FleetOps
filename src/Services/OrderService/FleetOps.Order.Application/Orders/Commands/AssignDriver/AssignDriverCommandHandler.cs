@@ -9,12 +9,11 @@ namespace FleetOps.Order.Application.Orders.Commands.AssignDriver
     public class  AssignDriverCommandHandler : IRequestHandler<AssignDriverCommand,Result>
     {
         private readonly IOrderRepository _orderRepository;
-        private readonly IUnitOfWork _unitOfWork;
-
-        public AssignDriverCommandHandler(IOrderRepository orderRepository,IUnitOfWork unitOfWork)
+        private readonly IAssignDriverSaga _assignDriverSaga;
+        public AssignDriverCommandHandler(IOrderRepository orderRepository, IAssignDriverSaga assignDriverSaga)
         {
             _orderRepository = orderRepository;
-            _unitOfWork = unitOfWork;
+            _assignDriverSaga = assignDriverSaga;
         }
         public async Task<Result>  Handle(AssignDriverCommand request, CancellationToken cancellationToken)
         {
@@ -22,12 +21,15 @@ namespace FleetOps.Order.Application.Orders.Commands.AssignDriver
             var order= await _orderRepository.GetByIdAsync(request.OrderId,cancellationToken);
             if (order is null) return OrderErrors.NotFound(request.OrderId);
 
-            var result=  order.AssignDriver(driverId: request.DriverId);
-            if (result.IsFailure) return result;
+            if (order.Status != OrderStatus.Pending)
+                return OrderErrors.CannotAssignDriver(order.Status);
+       
+            return await _assignDriverSaga.ExecuteAsync(
+                order,
+                request.DriverId,
+                cancellationToken);
 
-            var affectedRows = await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return Result.Success;
         }
     }
 }

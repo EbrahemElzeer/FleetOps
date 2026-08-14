@@ -1,10 +1,11 @@
 ﻿using FleetOps.Order.Application.Abstractions;
+using FleetOps.Order.Infrastructure.ExternalServices;
 using FleetOps.Order.Infrastructure.Persistence;
 using FleetOps.Order.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
+using Microsoft.Extensions.Options;
 namespace FleetOps.Order.Infrastructure;
 
 public static class DependencyInjection
@@ -21,6 +22,26 @@ public static class DependencyInjection
 
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IAssignDriverSagaRepository,AssignDriverSagaRepository>();
+
+        services.Configure<DriverServiceOptions>(
+      configuration.GetSection(DriverServiceOptions.SectionName));
+
+        services.AddHttpClient<IDriverReservationService, DriverReservationService>(
+            (serviceProvider, client) =>
+            {
+                var options = serviceProvider
+                    .GetRequiredService<IOptions<DriverServiceOptions>>()
+                    .Value;
+
+                if (string.IsNullOrWhiteSpace(options.BaseUrl))
+                {
+                    throw new InvalidOperationException(
+                        "DriverService BaseUrl is not configured.");
+                }
+
+                client.BaseAddress = new Uri(options.BaseUrl);
+            });
 
         return services;
     }

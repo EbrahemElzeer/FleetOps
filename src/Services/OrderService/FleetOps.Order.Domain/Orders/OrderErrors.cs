@@ -111,5 +111,16 @@ namespace FleetOps.Order.Domain.Orders
         description:
             $"An order with status '{currentStatus}' cannot be marked as returned. " +
             "Only orders returning to sender can be marked as returned.");
+
+
+        public static Error DriverNotFound(Guid driverId) => Error.NotFound(
+                 code: "Orders.DriverNotFound",
+                 description: $"Driver with ID '{driverId}' was not found.");
+
+        public static Error DriverNotEligible(Guid driverId, string? reason) => Error.Conflict(
+            code: "Orders.DriverNotEligible",
+            description: string.IsNullOrWhiteSpace(reason)
+                ? $"Driver with ID '{driverId}' is not eligible for assignment."
+                : reason);
     }
 }

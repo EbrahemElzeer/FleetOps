@@ -4,6 +4,7 @@ using FleetOps.Driver.Application.Drivers.Commands.ActivateDriver;
 using FleetOps.Driver.Application.Drivers.Commands.CreateDriver;
 using FleetOps.Driver.Application.Drivers.Commands.GoOffline;
 using FleetOps.Driver.Application.Drivers.Commands.GoOnline;
+using FleetOps.Driver.Application.Drivers.Commands.ReleaseDriver;
 using FleetOps.Driver.Application.Drivers.Commands.ReserveDriver;
 using FleetOps.Driver.Application.Drivers.Commands.SuspendDriver;
 using FleetOps.Driver.Application.Drivers.Queries.CheckDriverEligibility;
@@ -117,6 +118,15 @@ namespace FleetOps.Driver.Api.Controllers
         {
             var result = await _sender.Send(
                 new ReserveDriverCommand(id),
+                cancellationToken);
+
+            return HandleResult(result);
+        }
+        [HttpPut("{id:guid}/release")]
+        public async Task<ActionResult> Release(Guid id,CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(
+                new ReleaseDriverCommand(id),
                 cancellationToken);
 
             return HandleResult(result);

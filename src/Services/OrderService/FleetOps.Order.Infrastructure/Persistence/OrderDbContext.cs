@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FleetOps.Order.Domain.Sagas;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,8 +16,8 @@ namespace FleetOps.Order.Infrastructure.Persistence
         {
         }
 
-        public DbSet<Domain.Orders.Order> Orders
-            => Set<Domain.Orders.Order>();
+        public DbSet<Domain.Orders.Order> Orders=> Set<Domain.Orders.Order>();
+        public DbSet<AssignDriverSagaState> AssignDriverSagaState => Set<AssignDriverSagaState>();
 
         protected override void OnModelCreating(
             ModelBuilder modelBuilder)

@@ -1,5 +1,6 @@
 ﻿using FleetOps.Order.Application.Abstractions;
 using FleetOps.Order.Application.Orders.Commands.AssignDriver;
+using FleetOps.Order.Domain.Common;
 using FleetOps.Order.Domain.Orders;
 using FleetOps.Order.Domain.Orders.Enums;
 using FluentAssertions;
@@ -11,21 +12,21 @@ namespace FleetOps.Order.Tests.Application.OrdersTests.CommandsTests.AssignDrive
 public class AssignDriverCommandHandlerTests
 {
     private readonly Mock<IOrderRepository> _orderRepositoryMock;
-    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IAssignDriverSaga> _assignDriverSagaMock;
     private readonly AssignDriverCommandHandler _handler;
 
     public AssignDriverCommandHandlerTests()
     {
         _orderRepositoryMock = new Mock<IOrderRepository>();
-        _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _assignDriverSagaMock = new Mock<IAssignDriverSaga>();
 
         _handler = new AssignDriverCommandHandler(
             _orderRepositoryMock.Object,
-            _unitOfWorkMock.Object);
+            _assignDriverSagaMock.Object);
     }
 
     [Fact]
-    public async Task Handle_WhenOrderExistsAndRequestIsValid_ShouldAssignDriver()
+    public async Task Handle_WhenOrderExistsAndIsPending_ShouldExecuteAssignDriverSaga()
     {
         // Arrange
         var order = CreatePendingOrder();
@@ -37,6 +38,13 @@ public class AssignDriverCommandHandlerTests
 
         SetupOrderRepository(command.OrderId, order);
 
+        _assignDriverSagaMock
+            .Setup(saga => saga.ExecuteAsync(
+                order,
+                driverId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success);
+
         // Act
         var result = await _handler.Handle(
             command,
@@ -45,15 +53,13 @@ public class AssignDriverCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
 
-        order.DriverId.Should().Be(driverId);
-        order.Status.Should().Be(OrderStatus.Assigned);
-        order.AssignedAt.Should().NotBeNull();
-
-        VerifyOrderWasSaved();
+        VerifySagaWasExecuted(
+            order,
+            driverId);
     }
 
     [Fact]
-    public async Task Handle_WhenOrderDoesNotExist_ShouldReturnNotFoundWithoutSaving()
+    public async Task Handle_WhenOrderDoesNotExist_ShouldReturnNotFoundWithoutExecutingSaga()
     {
         // Arrange
         var orderId = Guid.NewGuid();
@@ -74,40 +80,11 @@ public class AssignDriverCommandHandlerTests
         result.Errors.Should().Contain(
             OrderErrors.NotFound(orderId));
 
-        VerifyOrderWasNotSaved();
+        VerifySagaWasNotExecuted();
     }
 
     [Fact]
-    public async Task Handle_WhenDriverIdIsEmpty_ShouldReturnFailureWithoutSaving()
-    {
-        // Arrange
-        var order = CreatePendingOrder();
-
-        var command = new AssignDriverCommand(
-            order.Id,
-            Guid.Empty);
-
-        SetupOrderRepository(command.OrderId, order);
-
-        // Act
-        var result = await _handler.Handle(
-            command,
-            CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Errors.Should().Contain(
-            OrderErrors.DriverIdRequired);
-
-        order.DriverId.Should().BeNull();
-        order.Status.Should().Be(OrderStatus.Pending);
-        order.AssignedAt.Should().BeNull();
-
-        VerifyOrderWasNotSaved();
-    }
-
-    [Fact]
-    public async Task Handle_WhenOrderIsNotPending_ShouldReturnFailureWithoutSaving()
+    public async Task Handle_WhenOrderIsNotPending_ShouldReturnFailureWithoutExecutingSaga()
     {
         // Arrange
         var assignedDriverId = Guid.NewGuid();
@@ -128,13 +105,49 @@ public class AssignDriverCommandHandlerTests
 
         // Assert
         result.IsFailure.Should().BeTrue();
+
         result.Errors.Should().Contain(
             OrderErrors.CannotAssignDriver(OrderStatus.Assigned));
 
-        order.DriverId.Should().Be(assignedDriverId);
-        order.Status.Should().Be(OrderStatus.Assigned);
+        VerifySagaWasNotExecuted();
+    }
 
-        VerifyOrderWasNotSaved();
+    [Fact]
+    public async Task Handle_WhenSagaFails_ShouldReturnSagaFailure()
+    {
+        // Arrange
+        var order = CreatePendingOrder();
+        var driverId = Guid.NewGuid();
+
+        var command = new AssignDriverCommand(
+            order.Id,
+            driverId);
+
+        SetupOrderRepository(command.OrderId, order);
+
+        var sagaFailure = OrderErrors.DriverIdRequired;
+
+        _assignDriverSagaMock
+            .Setup(saga => saga.ExecuteAsync(
+                order,
+                driverId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(sagaFailure);
+
+        // Act
+        var result = await _handler.Handle(
+            command,
+            CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+
+        result.Errors.Should().Contain(
+            sagaFailure);
+
+        VerifySagaWasExecuted(
+            order,
+            driverId);
     }
 
     private void SetupOrderRepository(
@@ -148,18 +161,24 @@ public class AssignDriverCommandHandlerTests
             .ReturnsAsync(order);
     }
 
-    private void VerifyOrderWasSaved()
+    private void VerifySagaWasExecuted(
+        Domain.Orders.Order order,
+        Guid driverId)
     {
-        _unitOfWorkMock.Verify(
-            unitOfWork => unitOfWork.SaveChangesAsync(
+        _assignDriverSagaMock.Verify(
+            saga => saga.ExecuteAsync(
+                order,
+                driverId,
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
-    private void VerifyOrderWasNotSaved()
+    private void VerifySagaWasNotExecuted()
     {
-        _unitOfWorkMock.Verify(
-            unitOfWork => unitOfWork.SaveChangesAsync(
+        _assignDriverSagaMock.Verify(
+            saga => saga.ExecuteAsync(
+                It.IsAny<Domain.Orders.Order>(),
+                It.IsAny<Guid>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
     }

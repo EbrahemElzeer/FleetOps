@@ -25,7 +25,6 @@ namespace FleetOps.Order.Infrastructure.Migrations
             modelBuilder.Entity("FleetOps.Order.Domain.Orders.Order", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("AcceptedAt")
@@ -90,7 +89,6 @@ namespace FleetOps.Order.Infrastructure.Migrations
             modelBuilder.Entity("FleetOps.Order.Domain.Orders.OrderStatusHistory", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("ChangedAt")
@@ -114,6 +112,43 @@ namespace FleetOps.Order.Infrastructure.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("OrderStatusHistories", (string)null);
+                });
+
+            modelBuilder.Entity("FleetOps.Order.Domain.Sagas.AssignDriverSagaState", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("DriverId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("AssignDriverSagaStates", (string)null);
                 });
 
             modelBuilder.Entity("FleetOps.Order.Domain.Orders.Order", b =>
