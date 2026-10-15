@@ -10,7 +10,6 @@ namespace FleetOps.Order.Domain.Sagas
 {
     public sealed class AssignDriverSagaState : Entity
     {
-        public Guid Id { get; private set; }
         public Guid OrderId { get; private set; }
         public Guid DriverId { get; private set; }
         public AssignDriverSagaStatus Status { get; private set; }
@@ -44,6 +43,7 @@ namespace FleetOps.Order.Domain.Sagas
         public void MarkCompleted()
         {
             Status = AssignDriverSagaStatus.Completed;
+            LastError = null;
             UpdatedAt = DateTime.UtcNow;
         }
 
@@ -57,6 +57,7 @@ namespace FleetOps.Order.Domain.Sagas
         public void MarkCompensated()
         {
             Status = AssignDriverSagaStatus.Compensated;
+            LastError = null;
             UpdatedAt = DateTime.UtcNow;
         }
 

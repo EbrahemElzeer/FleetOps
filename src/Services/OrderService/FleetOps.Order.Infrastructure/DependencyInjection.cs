@@ -1,5 +1,6 @@
 ﻿using FleetOps.Order.Application.Abstractions;
 using FleetOps.Order.Infrastructure.ExternalServices;
+using FleetOps.Order.Infrastructure.Messaging;
 using FleetOps.Order.Infrastructure.Persistence;
 using FleetOps.Order.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -23,10 +24,10 @@ public static class DependencyInjection
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IAssignDriverSagaRepository,AssignDriverSagaRepository>();
-
+        services.AddScoped<IOutboxRepository, OutboxRepository>();
         services.Configure<DriverServiceOptions>(
-      configuration.GetSection(DriverServiceOptions.SectionName));
-
+        configuration.GetSection(DriverServiceOptions.SectionName));
+        services.AddRabbitMq();
         services.AddHttpClient<IDriverReservationService, DriverReservationService>(
             (serviceProvider, client) =>
             {

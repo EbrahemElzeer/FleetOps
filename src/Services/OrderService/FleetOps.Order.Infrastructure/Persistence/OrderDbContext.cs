@@ -1,4 +1,5 @@
-﻿using FleetOps.Order.Domain.Sagas;
+﻿using FleetOps.Order.Domain.Outbox;
+using FleetOps.Order.Domain.Sagas;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace FleetOps.Order.Infrastructure.Persistence
 
         public DbSet<Domain.Orders.Order> Orders=> Set<Domain.Orders.Order>();
         public DbSet<AssignDriverSagaState> AssignDriverSagaState => Set<AssignDriverSagaState>();
-
+        public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
         protected override void OnModelCreating(
             ModelBuilder modelBuilder)
         {
