@@ -1,5 +1,6 @@
 ﻿using FleetOps.Order.Application.Abstractions.IntegrationEvents;
 using FleetOps.Order.Domain.Outbox;
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System.Text;
 
@@ -15,11 +16,13 @@ public sealed class RabbitMqIntegrationEventPublisher : IIntegrationEventPublish
     private readonly SemaphoreSlim _channelLock = new(1, 1);
 
     private IChannel? _channel;
-
+    private readonly ILogger<RabbitMqIntegrationEventPublisher> _logger;
     public RabbitMqIntegrationEventPublisher(
-        IConnection connection)
+    IConnection connection,
+    ILogger<RabbitMqIntegrationEventPublisher> logger)
     {
         _connection = connection;
+        _logger = logger;
     }
 
     public async Task<IReadOnlyList<PublishResult>> PublishBatchAsync(
@@ -29,7 +32,6 @@ public sealed class RabbitMqIntegrationEventPublisher : IIntegrationEventPublish
         if (messages.Count == 0)
             return Array.Empty<PublishResult>();
 
-        // Only one batch can use the channel at a time.
         await _channelLock.WaitAsync(cancellationToken);
 
         try
@@ -49,7 +51,6 @@ public sealed class RabbitMqIntegrationEventPublisher : IIntegrationEventPublish
                 ValueTask? Confirmation,
                 Exception? Error)>(messages.Count);
 
-            // Start publishing without awaiting each confirmation.
             foreach (var message in messages)
             {
                 try
@@ -84,7 +85,6 @@ public sealed class RabbitMqIntegrationEventPublisher : IIntegrationEventPublish
             var results = new List<PublishResult>(messages.Count);
             var anyFailure = false;
 
-            // Collect confirmation results per message.
             foreach (var item in pending)
             {
                 if (item.Error is not null)
@@ -118,11 +118,9 @@ public sealed class RabbitMqIntegrationEventPublisher : IIntegrationEventPublish
                 }
             }
 
-            // Never keep an uncertain channel after a failure.
             if (anyFailure)
                 await ResetChannelAsync();
 
-            // Application shutdown should propagate.
             cancellationToken.ThrowIfCancellationRequested();
 
             return results;
@@ -164,9 +162,12 @@ public sealed class RabbitMqIntegrationEventPublisher : IIntegrationEventPublish
         {
             await oldChannel.DisposeAsync();
         }
-        catch
+        catch (Exception ex)
         {
-            // The channel may already be broken.
+            _logger.LogWarning(
+             ex,
+             "Failed to dispose RabbitMQ channel. " +
+             "The channel may already be closed or broken.");
         }
     }
 

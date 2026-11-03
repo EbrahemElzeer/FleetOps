@@ -24,6 +24,11 @@ namespace FleetOps.Order.Domain.Outbox
         public DateTime? NextRetryAt { get; private set; }
         public string? Error { get; private set; }
         public OutboxStatus Status { get; private set; } = OutboxStatus.Pending;
+
+
+        public Guid? LockedBy { get; private set; }
+        public DateTime? LockedUntil { get; private set; }
+        public Guid? LeaseToken { get; private set; }
         private OutboxMessage()
         {
         }

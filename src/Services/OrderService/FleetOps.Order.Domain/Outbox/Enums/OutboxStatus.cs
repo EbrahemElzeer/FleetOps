@@ -9,7 +9,8 @@ namespace FleetOps.Order.Domain.Outbox.Enums
     public enum OutboxStatus
     {
         Pending = 1,
-        Processed = 2,
-        Dead = 3
+        Processing = 2,
+        Processed = 3,
+        Dead = 4
     }
 }
