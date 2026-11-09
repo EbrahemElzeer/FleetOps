@@ -1,4 +1,5 @@
 ﻿using FleetOps.Driver.Application.Abstractions;
+using FleetOps.Driver.Infrastructure.Messaging;
 using FleetOps.Driver.Infrastructure.Persistence;
 using FleetOps.Driver.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,11 @@ namespace FleetOps.Driver.Infrastructure
 
             services.AddScoped<IDriverRepository, DriverRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            services.Configure<RabbitMqOptions>(
+               configuration.GetSection("RabbitMQ"));
+
+            services.AddRabbitMq();
 
             return services;
         }

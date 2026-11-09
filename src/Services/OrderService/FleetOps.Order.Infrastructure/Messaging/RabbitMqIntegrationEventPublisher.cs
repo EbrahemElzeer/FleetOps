@@ -11,17 +11,18 @@ public sealed class RabbitMqIntegrationEventPublisher : IIntegrationEventPublish
 {
     private const string ExchangeName = "fleetops";
 
-    private readonly IConnection _connection;
-
+    private  IConnection? _connection;
+    private readonly IConnectionFactory _connectionFactory;
     private readonly SemaphoreSlim _channelLock = new(1, 1);
 
     private IChannel? _channel;
     private readonly ILogger<RabbitMqIntegrationEventPublisher> _logger;
     public RabbitMqIntegrationEventPublisher(
-    IConnection connection,
+  
+    IConnectionFactory connectionFactory,
     ILogger<RabbitMqIntegrationEventPublisher> logger)
     {
-        _connection = connection;
+        _connectionFactory = connectionFactory;
         _logger = logger;
     }
 
@@ -132,8 +133,16 @@ public sealed class RabbitMqIntegrationEventPublisher : IIntegrationEventPublish
     }
 
     private async Task<IChannel> GetChannelAsync(
-        CancellationToken ct)
+     CancellationToken ct)
     {
+        if (_connection is null || !_connection.IsOpen)
+        {
+            await ResetConnectionAsync();
+
+            _connection = await _connectionFactory
+                .CreateConnectionAsync(ct);
+        }
+
         if (_channel is { IsOpen: true })
             return _channel;
 
@@ -171,20 +180,42 @@ public sealed class RabbitMqIntegrationEventPublisher : IIntegrationEventPublish
         }
     }
 
+    private async Task ResetConnectionAsync()
+    {
+        await ResetChannelAsync();
+
+        if (_connection is null)
+            return;
+
+        var oldConnection = _connection;
+        _connection = null;
+
+        try
+        {
+            await oldConnection.DisposeAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to dispose RabbitMQ connection.");
+        }
+    }
+
+
+
     public async ValueTask DisposeAsync()
     {
         await _channelLock.WaitAsync();
 
         try
         {
-            await ResetChannelAsync();
+            await ResetConnectionAsync();
         }
         finally
         {
             _channelLock.Release();
+            _channelLock.Dispose();
         }
-
-        // Shutdown only: no further PublishBatchAsync calls.
-        _channelLock.Dispose();
     }
 }

@@ -27,6 +27,9 @@ public static class DependencyInjection
         services.AddScoped<IOutboxRepository, OutboxRepository>();
         services.Configure<DriverServiceOptions>(
         configuration.GetSection(DriverServiceOptions.SectionName));
+        services.Configure<RabbitMqOptions>(
+         configuration.GetSection("RabbitMQ"));
+
         services.AddRabbitMq();
         services.AddHttpClient<IDriverReservationService, DriverReservationService>(
             (serviceProvider, client) =>

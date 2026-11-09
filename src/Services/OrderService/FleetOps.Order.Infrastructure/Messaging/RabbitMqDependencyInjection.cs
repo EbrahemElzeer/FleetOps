@@ -9,27 +9,20 @@ public static class RabbitMqDependencyInjection
     public static IServiceCollection AddRabbitMq(
         this IServiceCollection services)
     {
-        services.AddSingleton<IConnection>(sp =>
+        services.AddSingleton<IConnectionFactory>(sp =>
         {
             var options = sp
-               .GetRequiredService<IOptions<RabbitMqOptions>>()
-               .Value;
+                .GetRequiredService<IOptions<RabbitMqOptions>>()
+                .Value;
 
-            var factory = new ConnectionFactory
+            return new ConnectionFactory
             {
                 HostName = options.HostName,
                 Port = options.Port,
                 UserName = options.UserName,
                 Password = options.Password
             };
-
-
-            return factory
-                .CreateConnectionAsync()
-                .GetAwaiter()
-                .GetResult();
         });
-
         return services;
     }
 }
