@@ -31,6 +31,9 @@ namespace FleetOps.Driver.Infrastructure.Migrations
                     b.Property<DateTime?>("AssignedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("AssignedOrderId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -86,6 +89,20 @@ namespace FleetOps.Driver.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Drivers", (string)null);
+                });
+
+            modelBuilder.Entity("FleetOps.Driver.Domain.Inbox.InboxMessage", b =>
+                {
+                    b.Property<Guid>("MessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ProcessedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("MessageId");
+
+                    b.ToTable("InboxMessages", (string)null);
                 });
 #pragma warning restore 612, 618
         }

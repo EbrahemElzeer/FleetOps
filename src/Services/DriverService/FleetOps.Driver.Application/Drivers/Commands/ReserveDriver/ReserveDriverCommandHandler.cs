@@ -29,7 +29,7 @@ namespace FleetOps.Driver.Application.Drivers.Commands.ReserveDriver
             if (driver is null)
                 return DriverErrors.NotFound(request.DriverId);
 
-            var result = driver.MarkAsAssigned();
+            var result = driver.MarkAsAssigned(request.OrderId);
 
             if (result.IsFailure)
                 return result;

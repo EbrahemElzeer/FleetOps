@@ -114,19 +114,19 @@ namespace FleetOps.Driver.Api.Controllers
         }
 
         [HttpPut("{id:guid}/reserve")]
-        public async Task<ActionResult> Reserve(Guid id,CancellationToken cancellationToken)
+        public async Task<ActionResult> Reserve(Guid id, [FromBody]DriverReservationRequest request, CancellationToken cancellationToken)
         {
             var result = await _sender.Send(
-                new ReserveDriverCommand(id),
+                new ReserveDriverCommand(id,request.OrderId),
                 cancellationToken);
 
             return HandleResult(result);
         }
         [HttpPut("{id:guid}/release")]
-        public async Task<ActionResult> Release(Guid id,CancellationToken cancellationToken)
+        public async Task<ActionResult> Release(Guid id, [FromBody] DriverReservationRequest request, CancellationToken cancellationToken)
         {
             var result = await _sender.Send(
-                new ReleaseDriverCommand(id),
+                new ReleaseDriverCommand(id,request.OrderId),
                 cancellationToken);
 
             return HandleResult(result);

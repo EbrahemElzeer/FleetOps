@@ -3,5 +3,5 @@ using MediatR;
 
 namespace FleetOps.Driver.Application.Drivers.Commands.ReserveDriver
 {
-    public sealed record ReserveDriverCommand(Guid DriverId) : IRequest<Result>;
+    public sealed record ReserveDriverCommand(Guid DriverId, Guid OrderId) : IRequest<Result>;
 }

@@ -28,7 +28,7 @@ namespace FleetOps.Driver.Application.Drivers.Commands.ReleaseDriver
             if (driver is null)
                 return DriverErrors.NotFound(request.DriverId);
 
-            var result = driver.MarkAsAvailable();
+            var result = driver.ReleaseReservation(request.OrderId);
 
             if (result.IsFailure)
                 return result;

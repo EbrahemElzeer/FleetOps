@@ -47,6 +47,9 @@ public static class DriverErrors
         code: "Drivers.CannotMarkAsReturning",
         description: $"Driver cannot be marked as returning while status is '{status}'.");
 
+    public static Error ReservationOrderMismatch() => Error.Conflict(
+     code: "Drivers.ReservationOrderMismatch",
+     description: "Cannot release driver reservation because the order ID does not match the currently assigned order.");
     public static Error CannotMarkAsAvailable(DriverStatus status) => Error.Conflict(
         code: "Drivers.CannotMarkAsAvailable",
         description: $"Driver cannot be marked as available while status is '{status}'.");

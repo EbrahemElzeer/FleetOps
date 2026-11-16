@@ -56,6 +56,12 @@ namespace FleetOps.Driver.Domain.Drivers
         public DriverSuspensionReason? SuspensionReason { get; private set; }
 
         public string? SuspensionNotes { get; private set; }
+
+
+        public Guid? AssignedOrderId { get; private set; }
+
+
+
         public static Result<Driver> Create(string? fullName,string? phoneNumber,VehicleType vehicleType, string? vehiclePlateNumber)
         {
             if (string.IsNullOrWhiteSpace(fullName))
@@ -133,14 +139,14 @@ namespace FleetOps.Driver.Domain.Drivers
             return Result.Success;
         }
 
-        public Result MarkAsAssigned()
+        public Result MarkAsAssigned(Guid orderId)
         {
             if (Status != DriverStatus.Available)
                 return DriverErrors.CannotMarkAsAssigned(Status);
 
             Status = DriverStatus.Assigned;
             AssignedAt = DateTime.UtcNow;
-
+            AssignedOrderId = orderId;
             return Result.Success;
         }
 
@@ -176,7 +182,22 @@ namespace FleetOps.Driver.Domain.Drivers
             }
 
             Status = DriverStatus.Available;
+            AssignedAt = null;
+            AssignedOrderId = null;
+            return Result.Success;
+        }
 
+        public Result ReleaseReservation(Guid orderId)
+        {
+            if (Status != DriverStatus.Assigned)
+                return DriverErrors.CannotMarkAsAvailable(Status);
+
+            if (AssignedOrderId != orderId)
+                return DriverErrors.ReservationOrderMismatch();
+
+            Status = DriverStatus.Available;
+            AssignedAt = null;
+            AssignedOrderId = null;
             return Result.Success;
         }
 

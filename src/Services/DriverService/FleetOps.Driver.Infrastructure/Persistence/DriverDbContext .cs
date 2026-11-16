@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FleetOps.Driver.Domain.Inbox;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using DriverAggregate = FleetOps.Driver.Domain.Drivers.Driver;
@@ -12,7 +13,7 @@ namespace FleetOps.Driver.Infrastructure.Persistence
         }
 
         public DbSet<DriverAggregate> Drivers => Set<DriverAggregate>();
-
+        public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(
