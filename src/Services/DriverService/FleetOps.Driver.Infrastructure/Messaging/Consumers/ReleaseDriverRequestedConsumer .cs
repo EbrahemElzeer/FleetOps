@@ -1,4 +1,5 @@
-﻿using FleetOps.Driver.Application.Drivers.Commands.ReleaseDriver;
+﻿using FleetOps.Driver.Application.Drivers.Commands.ProcessReleaseDriverRequested;
+using FleetOps.Driver.Application.Drivers.Commands.ReleaseDriver;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -80,12 +81,21 @@ namespace FleetOps.Driver.Infrastructure.Messaging.Consumers
 
                     return;
                 }
+                if (!Guid.TryParse(
+                        args.BasicProperties.MessageId,
+                        out var messageId))
+                {
+                    _logger.LogWarning(
+                        "Invalid RabbitMQ MessageId: {MessageId}",
+                        args.BasicProperties.MessageId);
 
+                    return;
+                }
                 await using var scope = _serviceScopeFactory.CreateAsyncScope();
 
                 var mediator=scope.ServiceProvider.GetRequiredService<IMediator>();
 
-                var result= await mediator.Send(new ReleaseDriverCommand(message.DriverId,message.OrderId),
+                var result= await mediator.Send(new ProcessReleaseDriverRequestedCommand(message.DriverId,message.OrderId,messageId),
                     stoppingToken);
 
                 if (result.IsFailure)
@@ -106,7 +116,6 @@ namespace FleetOps.Driver.Infrastructure.Messaging.Consumers
                     "Received message: {MessageId}",
                     args.BasicProperties.MessageId);
 
-                await Task.CompletedTask;
             };
 
             await channel.BasicConsumeAsync(
@@ -115,6 +124,19 @@ namespace FleetOps.Driver.Infrastructure.Messaging.Consumers
                 consumer: consumer,
                 cancellationToken: stoppingToken);
 
+
+            try
+            {
+                await Task.Delay(
+                    Timeout.InfiniteTimeSpan,
+                    stoppingToken);
+            }
+            catch (OperationCanceledException)
+                when (stoppingToken.IsCancellationRequested)
+            {
+                _logger.LogInformation(
+                    "ReleaseDriverRequestedConsumer is stopping.");
+            }
         }
     }
 }

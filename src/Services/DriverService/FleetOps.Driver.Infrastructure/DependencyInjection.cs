@@ -20,6 +20,7 @@ namespace FleetOps.Driver.Infrastructure
 
             services.AddScoped<IDriverRepository, DriverRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IInboxRepository, InboxRepository>();
 
             services.Configure<RabbitMqOptions>(
                configuration.GetSection("RabbitMQ"));
