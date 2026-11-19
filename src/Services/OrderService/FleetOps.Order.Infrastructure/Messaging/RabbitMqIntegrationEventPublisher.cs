@@ -9,7 +9,7 @@ namespace FleetOps.Order.Infrastructure.Messaging;
 public sealed class RabbitMqIntegrationEventPublisher : IIntegrationEventPublisher, IAsyncDisposable
    
 {
-    private const string ExchangeName = "fleetops";
+    private const string ExchangeName = "fleetops.driver";
 
     private  IConnection? _connection;
     private readonly IConnectionFactory _connectionFactory;
